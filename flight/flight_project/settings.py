@@ -9,11 +9,11 @@
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 
+
 BOT_NAME = 'flight_project'
 
 SPIDER_MODULES = ['flight_project.spiders']
 NEWSPIDER_MODULE = 'flight_project.spiders'
-
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'flight_project (+http://www.yourdomain.com)'
@@ -56,6 +56,21 @@ ROBOTSTXT_OBEY = True
 #    'flight_project.middlewares.MyCustomDownloaderMiddleware': 543,
 #}
 
+
+RETRY_TIMES = 5
+
+# pip install scrapy-fake-useragent
+# pip install fake-useragent
+
+RANDOM_UA_PER_PROXY = True
+
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400,
+    'flight_project.middlewares.ProxyMiddleware': 100,
+    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware':110,
+
+    }
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
 #EXTENSIONS = {
@@ -67,6 +82,9 @@ ROBOTSTXT_OBEY = True
 ITEM_PIPELINES = {
     'flight_project.pipelines.MongoPipeline': 300,
 }
+
+HTTP_PROXY = 'http://127.0.0.1:8118'
+HTTPS_PROXY = 'http://127.0.0.1:8118'
 
 MONGODB_SERVER = "localhost"
 MONGODB_PORT = 27017

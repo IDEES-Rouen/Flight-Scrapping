@@ -33,7 +33,11 @@ class AirportsSpider(scrapy.Spider):
             yield scrapy.Request(url[0],meta={'my_country_item':item}, callback=self.parse_page2)
 
 
-        #return item
+        # return item
+
+
+    #GET  : /common/v1/airport.json?code=yxu&plugin[]=&plugin-setting[schedule][mode]
+    # =&plugin-setting[schedule][timestamp]=1483979745&page=1&limit=50&token= HTTP/1.1
 
     def parse_page2(self,response):
         item = response.meta['my_country_item']
@@ -62,4 +66,5 @@ class AirportsSpider(scrapy.Spider):
         item['airports'] = airports
 
         return item
+
 
