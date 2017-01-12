@@ -5,6 +5,7 @@ from flight_project.items.Items import *
 from bs4 import BeautifulSoup
 import cfscrape
 import json
+import jmespath
 
 class AirportsSpider(scrapy.Spider):
     name = "airports"
@@ -22,9 +23,9 @@ class AirportsSpider(scrapy.Spider):
 
     def start_requests(self):
         cf_requests = []
-
+        user_agent=self.settings['USER_AGENT']
         for url in self.start_urls:
-            token , agent = cfscrape.get_tokens(url)
+            token , agent = cfscrape.get_tokens(url,user_agent)
             self.logger.info("token = %s", token)
             self.logger.info("agent = %s", agent)
 
@@ -95,8 +96,10 @@ class AirportsSpider(scrapy.Spider):
     def parse_page3(self,response):
 
         item = response.meta['my_airport_item']
+        jsonload = json.loads(response.body_as_unicode())
+        json_expression = jmespath.compile("result.response.airport.pluginData.schedule")
         self.logger.info("GET AIRPORT JSON = %s", item['code_little'])
-        item['json'] = json.loads(response.body_as_unicode())
+        item['schedule'] = json_expression.search(jsonload)
         # search into json.result.response.airport.pluginData.schedule
 
         return item
