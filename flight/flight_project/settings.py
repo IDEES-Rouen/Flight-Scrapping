@@ -68,7 +68,7 @@ RANDOM_UA_PER_PROXY = True
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
-    'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 400
+    'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 50
     #'flight_project.middlewares.ProxyMiddleware': 100,
     #'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware':110,
     }

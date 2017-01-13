@@ -25,20 +25,20 @@ class AirportsSpider(scrapy.Spider):
         cf_requests = []
         user_agent=self.settings['USER_AGENT']
         for url in self.start_urls:
-            token , agent = cfscrape.get_tokens(url,user_agent)
+            token , agent = cfscrape.get_tokens(url)
             self.logger.info("token = %s", token)
             self.logger.info("agent = %s", agent)
 
             cf_requests.append(scrapy.Request(url=url,
-                                              cookies= token,
-                                              headers={'User-Agent': agent}))
+                                              cookies= token))
         return cf_requests
 
     def parse(self, response):
         count_country = 0
+        countries = []
         #self.logger.info("Visited main page %s", response.url)
         for country in response.xpath('//a[@data-country]'):
-            if count_country > 2:
+            if count_country > 5:
                 break
             item = CountryItem()
             url =  country.xpath('./@href').extract()
@@ -46,27 +46,15 @@ class AirportsSpider(scrapy.Spider):
             item['link'] = url[0]
             item['name'] = name[0]
             count_country += 1
+            countries.append(item)
             #self.logger.info("Airport name : %s with link %s" , item['name'] , item['link'])
-            yield scrapy.Request(url[0],meta={'my_country_item':item}, callback=self.parse_page2)
+            yield scrapy.Request(url[0],meta={'my_country_item':item}, callback=self.parse_airports)
 
-
-        # return item
-
-
-
-    #GET  : /common/v1/airport.json?code=yxu&plugin[]=&plugin-setting[schedule][mode]
-    # =&plugin-setting[schedule][timestamp]=1483979745&page=1&limit=50&token= HTTP/1.1
-
-    def parse_page2(self,response):
+    def parse_airports(self,response):
         item = response.meta['my_country_item']
-        #self.logger.info("Airport name : %s", item['name'])
-        #self.logger.info("Visited airport page %s", response.url)
         airports = []
-        count_airport = 0
 
         for airport in response.xpath('//a[@data-iata]'):
-            if count_airport > 5:
-                break
             url = airport.xpath('./@href').extract()
             iata = airport.xpath('./@data-iata').extract()
             iatabis = airport.xpath('./small/text()').extract()
@@ -83,23 +71,19 @@ class AirportsSpider(scrapy.Spider):
             iAirport['code_total'] = iatabis[0]
 
             airports.append(iAirport)
-            count_airport += 1
+
+        for airport in airports:
+            json_url = 'https://api.flightradar24.com/common/v1/airport.json?code={code}&plugin\[\]=&plugin-setting\[schedule\]\[mode\]=&plugin-setting\[schedule\]\[timestamp\]={timestamp}&page=1&limit=50&token='.format(code=airport['code_little'], timestamp="1484150483")
+            yield scrapy.Request(json_url, meta={'airport_item': airport}, callback=self.parse_schedule)
 
         item['airports'] = airports
 
-        for airport in item['airports']:
-            json_url = 'https://api.flightradar24.com/common/v1/airport.json?code={code}&plugin\[\]=&plugin-setting\[schedule\]\[mode\]=&plugin-setting\[schedule\]\[timestamp\]={timestamp}&page=1&limit=50&token='.format(code=airport['code_little'], timestamp="1484150483")
-            yield scrapy.Request(json_url, meta={'my_airport_item': airport}, callback=self.parse_page3)
+        yield {"country" : item}
 
-        return item
+    def parse_schedule(self,response):
 
-    def parse_page3(self,response):
-
-        item = response.meta['my_airport_item']
+        item = response.request.meta['airport_item']
         jsonload = json.loads(response.body_as_unicode())
         json_expression = jmespath.compile("result.response.airport.pluginData.schedule")
-        self.logger.info("GET AIRPORT JSON = %s", item['code_little'])
         item['schedule'] = json_expression.search(jsonload)
         # search into json.result.response.airport.pluginData.schedule
-
-        return item

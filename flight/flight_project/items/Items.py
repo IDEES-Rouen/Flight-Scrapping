@@ -22,8 +22,3 @@ class AirportItem(scrapy.Item):
     lon = scrapy.Field()
     link = scrapy.Field()
     schedule = scrapy.Field()
-
-class DeparturesItem(scrapy.Item):
-    raw = scrapy.Field()
-    origin = scrapy.Field()
-    destination = scrapy.Field()
