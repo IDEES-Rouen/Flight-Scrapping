@@ -19,7 +19,7 @@ NEWSPIDER_MODULE = 'flight_project.spiders'
 #USER_AGENT = 'flight_project (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 1
@@ -62,13 +62,13 @@ RETRY_TIMES = 2
 # pip install scrapy-fake-useragent
 # pip install fake-useragent
 
-#RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
+RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 
 RANDOM_UA_PER_PROXY = True
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
-    'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 50
+    # 'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 50
     #'flight_project.middlewares.ProxyMiddleware': 100,
     #'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware':110,
     }

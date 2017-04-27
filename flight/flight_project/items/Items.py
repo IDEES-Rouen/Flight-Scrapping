@@ -10,6 +10,7 @@ import scrapy
 class CountryItem(scrapy.Item):
     name = scrapy.Field()
     link = scrapy.Field()
+    num_airports = scrapy.Field()
     airports = scrapy.Field()
     other_url= scrapy.Field()
     last_updated = scrapy.Field(serializer=str)
@@ -21,4 +22,5 @@ class AirportItem(scrapy.Item):
     lat = scrapy.Field()
     lon = scrapy.Field()
     link = scrapy.Field()
-    schedule = scrapy.Field()
+    departures = scrapy.Field()
+    arrivals = scrapy.Field()
