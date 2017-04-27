@@ -193,9 +193,7 @@ class AirportsSpider(scrapy.Spider):
             #json_expression = jmespath.compile("result.response.airport.pluginData.schedule")
             #item['airports'][i]['schedule'] = json_expression.search(jsonload)
 
-            print("GET DEPARTURES URL - START FOR ", item['airports'][i]['name'])
-            yield scrapy.Request(response.url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': urls_departures, 'i':0 , 'p': 0})
-            print("GET DEPARTURES URL - END FOR " , item['airports'][i]['name'])
+            yield scrapy.Request(response.url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': urls_departures, 'i':0 , 'p': 0}, dont_filter=True)
 
             # now do next schedule items
             if not urls:
