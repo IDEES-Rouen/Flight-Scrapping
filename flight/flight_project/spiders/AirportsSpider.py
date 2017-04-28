@@ -65,7 +65,7 @@ class AirportsSpider(scrapy.Spider):
             item['name'] = name[0]
             item['airports'] = []
             count_country += 1
-            if name[0] == "Israel":
+            if name[0] == "Bulgaria":
                 countries.append(item)
                 self.logger.info("Airport name : %s with link %s" , item['name'] , item['link'])
                 yield scrapy.Request(url[0],meta={'my_country_item':item}, callback=self.parse_airports)
@@ -140,7 +140,6 @@ class AirportsSpider(scrapy.Spider):
         print("nbpages_departures = ", nbpages_departures)
         print("nbpages_arrivals = ", nbpages_arrivals)
 
-
         for p in range(nbpages_departures):
             urls_departures.append(self.build_api_call(airport_code, p + 1 , self.compute_timestamp()))
 
@@ -158,18 +157,24 @@ class AirportsSpider(scrapy.Spider):
         i = response.meta['i']
         page_urls = response.meta['page_urls']
 
-        print("PAGE URL = ", page_urls)
-
-        if not page_urls:
-            yield item
-            return
-        page_url = page_urls.pop()
-
-        print("GET PAGE FOR  ", item['airports'][i]['name'], ">> ", p)
+        print("---")
+        print("GET DEPARTURE FOR >> ", item['airports'][i]['name'], ">> PAGE ", p)
+        print("URL TO CRAWL >> ", page_urls)
 
         jsonload = json.loads(response.body_as_unicode())
         json_expression = jmespath.compile("result.response.airport.pluginData.schedule.departures.data")
-        item['airports'][i]['departures'] = json_expression.search(jsonload)
+
+        # Append a new page
+        item['airports'][i]['departures'].append(json_expression.search(jsonload))
+
+        page_url = page_urls.pop()
+        print ("POP FOR >> ", item['airports'][i]['name'])
+        print("---")
+
+        if not page_urls:
+            print("END OF URLS, RETURN ITEM > ", item['airports'][i]['name'])
+            yield item
+            return
 
         yield scrapy.Request(page_url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': page_urls, 'i': i, 'p': p + 1})
 
@@ -192,8 +197,8 @@ class AirportsSpider(scrapy.Spider):
             #jsonload = json.loads(response.body_as_unicode())
             #json_expression = jmespath.compile("result.response.airport.pluginData.schedule")
             #item['airports'][i]['schedule'] = json_expression.search(jsonload)
-
-            yield scrapy.Request(response.url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': urls_departures, 'i':0 , 'p': 0}, dont_filter=True)
+            item['airports'][i]['departures'] = []
+            yield scrapy.Request(response.url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': urls_departures, 'i':i , 'p': 0}, dont_filter=True)
 
             # now do next schedule items
             if not urls:
