@@ -103,8 +103,7 @@ class AirportsSpider(scrapy.Spider):
 
         # start with first url
         next_url = urls.pop()
-        return scrapy.Request(next_url, self.parse_schedule, meta={'airport_item': item, 'airport_urls': urls, 'i': 0})
-
+        yield scrapy.Request(next_url, self.parse_schedule, meta={'airport_item': item, 'airport_urls': urls, 'i': 0})
 
     def compute_urls_by_page(self,response,airport_name,airport_code):
 
@@ -176,81 +175,35 @@ class AirportsSpider(scrapy.Spider):
             yield item
             return
 
-        yield scrapy.Request(page_url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': page_urls, 'i': i, 'p': p + 1})
+        yield from scrapy.Request(page_url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': page_urls, 'i': i, 'p': p + 1})
 
     ###################################
     # PARSE EACH AIRPORT OF COUNTRY
     ###################################
     def parse_schedule(self, response):
-            """we want to loop this continuously to build every departure and arrivals requests"""
-            item = response.meta['airport_item']
-            i = response.meta['i']
-            urls = response.meta['airport_urls']
+        """we want to loop this continuously to build every departure and arrivals requests"""
+        item = response.meta['airport_item']
+        i = response.meta['i']
+        urls = response.meta['airport_urls']
 
-            urls_departures, urls_arrivals = self.compute_urls_by_page(response, item['airports'][i]['name'], item['airports'][i]['code_little'])
+        urls_departures, urls_arrivals = self.compute_urls_by_page(response, item['airports'][i]['name'], item['airports'][i]['code_little'])
 
-            print("urls_departures = ", len(urls_departures))
-            print("urls_arrivals = ", len(urls_arrivals))
+        print("urls_departures = ", len(urls_departures))
+        print("urls_arrivals = ", len(urls_arrivals))
 
-            ## GET EACH DEPARTURE PAGE
+        ## GET EACH DEPARTURE PAGE
 
-            #jsonload = json.loads(response.body_as_unicode())
-            #json_expression = jmespath.compile("result.response.airport.pluginData.schedule")
-            #item['airports'][i]['schedule'] = json_expression.search(jsonload)
-            item['airports'][i]['departures'] = []
-            yield scrapy.Request(response.url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': urls_departures, 'i':i , 'p': 0}, dont_filter=True)
+        #jsonload = json.loads(response.body_as_unicode())
+        #json_expression = jmespath.compile("result.response.airport.pluginData.schedule")
+        #item['airports'][i]['schedule'] = json_expression.search(jsonload)
+        item['airports'][i]['departures'] = []
+        #yield scrapy.Request(response.url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': urls_departures, 'i':i , 'p': 0}, dont_filter=True)
 
-            # now do next schedule items
-            if not urls:
-                yield item
-                return
-            url = urls.pop()
+        # now do next schedule items
+        if not urls:
+            yield item
+            return
 
-            yield scrapy.Request(url, self.parse_schedule, meta={'airport_item': item, 'airport_urls': urls, 'i': i + 1})
+        url = urls.pop()
 
-    # def parse_airports(self, response):
-    #     item = response.meta['my_country_item']
-    #     airports = []
-    #
-    #     for airport in response.xpath('//a[@data-iata]'):
-    #         url = airport.xpath('./@href').extract()
-    #         iata = airport.xpath('./@data-iata').extract()
-    #         iatabis = airport.xpath('./small/text()').extract()
-    #         name = ''.join(airport.xpath('./text()').extract()).strip()
-    #         lat = airport.xpath("./@data-lat").extract()
-    #         lon = airport.xpath("./@data-lon").extract()
-    #         iAirport = AirportItem()
-    #         iAirport['name'] = self.clean_html(name)
-    #         iAirport['link'] = url[0]
-    #         iAirport['lat'] = lat[0]
-    #         iAirport['lon'] = lon[0]
-    #         iAirport['code_little'] = iata[0]
-    #         iAirport['code_total'] = iatabis[0]
-    #         airports.append(iAirport)
-    #
-    #     item['num_airports'] = 0
-    #     item['airports'] = airports
-    #     for airport in airports:
-    #         json_url = 'https://api.flightradar24.com/common/v1/airport.json?code={code}&plugin\[\]=&plugin-setting\[schedule\]\[mode\]=&plugin-setting\[schedule\]\[timestamp\]={timestamp}&page=1&limit=50&token='.format(
-    #             code=airport['code_little'], timestamp="1484150483")
-    #         yield scrapy.Request(json_url,
-    #                              meta={
-    #                                  'country_item': item,
-    #                                  'airport_item': airport,
-    #                                  'max_num_airports': len(airports)},
-    #                              callback=self.parse_schedule)
-    #
-    #     if not airports:
-    #         yield item
-    #
-    # def parse_schedule(self, response):
-    #     country_item = response.request.meta['country_item']
-    #     airport_item = response.request.meta['airport_item']
-    #     jsonload = json.loads(response.body_as_unicode())
-    #     json_expression = jmespath.compile("result.response.airport.pluginData.schedule")
-    #     airport_item['schedule'] = json_expression.search(jsonload)
-    #
-    #     country_item['num_airports'] += 1
-    #     if country_item['num_airports'] == response.request.meta['max_num_airports']:
-    #         del country_item['num_airports']
-    #         yield country_item
+        yield from scrapy.Request(url, self.parse_schedule, meta={'airport_item': item, 'airport_urls': urls, 'i': i + 1})

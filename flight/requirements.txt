@@ -1,7 +1,8 @@
 cfscrape==1.8.0
 fake-useragent==0.1.7
-scrapy-fake-useragent==1.0.2
+scrapy-fake-useragent==1.0.4
 scrapy-proxies==0.3
 beautifulsoup4
 pytz
 pymongo
+scrapy
