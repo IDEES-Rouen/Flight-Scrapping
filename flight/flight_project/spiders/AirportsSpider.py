@@ -65,7 +65,7 @@ class AirportsSpider(scrapy.Spider):
             item['name'] = name[0]
             item['airports'] = []
             count_country += 1
-            if name[0] == "Bulgaria":
+            if name[0] == "France":
                 countries.append(item)
                 self.logger.info("Airport name : %s with link %s" , item['name'] , item['link'])
                 yield scrapy.Request(url[0],meta={'my_country_item':item}, callback=self.parse_airports)
@@ -175,7 +175,7 @@ class AirportsSpider(scrapy.Spider):
             yield item
             return
 
-        yield from scrapy.Request(page_url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': page_urls, 'i': i, 'p': p + 1})
+        yield scrapy.Request(page_url, self.parse_departures_page, meta={'airport_item': item, 'page_urls': page_urls, 'i': i, 'p': p + 1})
 
     ###################################
     # PARSE EACH AIRPORT OF COUNTRY
@@ -206,4 +206,4 @@ class AirportsSpider(scrapy.Spider):
 
         url = urls.pop()
 
-        yield from scrapy.Request(url, self.parse_schedule, meta={'airport_item': item, 'airport_urls': urls, 'i': i + 1})
+        yield scrapy.Request(url, self.parse_schedule, meta={'airport_item': item, 'airport_urls': urls, 'i': i + 1})
