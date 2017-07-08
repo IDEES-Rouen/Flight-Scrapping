@@ -7,6 +7,16 @@
 
 import scrapy
 
+class PageItem(scrapy.Item):
+    name = scrapy.Field()
+    flight = scrapy.Field()
+    arrivalsPFlight = scrapy.Field()
+    departuresPFlight = scrapy.Field()
+    currentAPage = scrapy.Field()
+    totalAPage = scrapy.Field()
+    currentDPage = scrapy.Field()
+    totalDPage = scrapy.Field()
+
 class CountryItem(scrapy.Item):
     name = scrapy.Field()
     link = scrapy.Field()
@@ -22,5 +32,9 @@ class AirportItem(scrapy.Item):
     lat = scrapy.Field()
     lon = scrapy.Field()
     link = scrapy.Field()
-    departures = scrapy.Field()
-    arrivals = scrapy.Field()
+    pages = scrapy.Field()
+
+class ScheduleItem(scrapy.Item):
+    country = scrapy.Field()
+    airport = scrapy.Field()
+    timestamp = scrapy.Field()

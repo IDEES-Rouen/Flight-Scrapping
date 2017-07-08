@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pymongo
+from scrapy import log
 
 class MongoPipeline(object):
 
@@ -25,5 +26,6 @@ class MongoPipeline(object):
         self.client.close()
 
     def process_item(self, item, spider):
+        log.msg("Item wrote to MongoDB database")
         self.db[self.collection_name].insert(dict(item))
         return item
