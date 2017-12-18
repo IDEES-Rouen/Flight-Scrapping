@@ -1,63 +1,67 @@
 ############################################################
-# Dockerfile for a Scrapy development environment
-# Based on Ubuntu Image
+# STAGE 1
 ############################################################
 
-FROM ubuntu:17.04
+# https://denibertovic.com/posts/handling-permissions-with-docker-volumes/
+FROM gliderlabs/alpine:edge as baseStage
+
+RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
+RUN apk add --update && apk add -f gnupg ca-certificates curl dpkg su-exec shadow
+
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+RUN addgroup scrapy \
+    && adduser -S -G scrapy scrapy
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+############################################################
+# STAGE 2
+############################################################
+
+FROM baseStage
 MAINTAINER rey <sebastien.rey-coyrehourcq@univ-rouen.fr>
 
-## Python Family
-RUN apt-get update
-RUN apt-get install -qy gcc git curl make bzip2 sqlite openssl libreadline-dev libbz2-dev libssl-dev libsqlite3-dev
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-## MongoDB
-RUN apt-get install dirmngr
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-RUN apt-get install -y --no-install-recommends software-properties-common
-RUN echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+### Python Family
+RUN apk add -f bash nmap patch build-base git openssl-dev bzip2-dev readline readline-devel sqlite3 wget gcc git linux-headers ncurses-dev ca-certificates
+RUN apk add -f curl make bzip2 sqlite openssl openssl-dev libreadline-dev libbz2-dev libssl-dev libxml2-dev libxslt-dev libffi-dev libsqlite3-dev iputils-ping nmap mongodb-tools mongodb-clients
 
-## MONGODB
-# Create the MongoDB data directory
-RUN apt-get update
-RUN apt-get install -y mongodb-org
+RUN mkdir /backup && chown scrapy:scrapy /backup
 
-RUN mkdir -p /data/db
+# Switch user after install
+WORKDIR /home/scrapy
+USER scrapy
 
-# Expose port 27017 from the container to the host
-EXPOSE 27017
+# SET TIMEZONE https://serverfault.com/questions/683605/docker-container-time-timezone-will-not-reflect-changes
 
-# Set usr/bin/mongod as the dockerized entry-point application
-ENTRYPOINT ["/usr/bin/mongod"]
-
-## PYTHON
-
-RUN useradd -m python_user
-
-WORKDIR /home/python_user
-USER python_user
+#### PYTHON
 
 RUN git clone git://github.com/yyuu/pyenv.git .pyenv
 
-RUN git clone https://github.com/pyenv/pyenv-virtualenv.git .pyenv/plugins/pyenv-virtualenv
-
-ENV HOME  /home/python_user
+ENV HOME /home/scrapy
 ENV PYENV_ROOT $HOME/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
-RUN echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
-RUN . ~/.bashrc
+### SQLITE 3 bug with python compile, needed but create mkdir bug in opt ...
+### ENV LDFLAGS="-L/usr/local/opt/sqlite/lib -L/usr/local/opt/zlib/lib"
+### ENV CPPFLAGS="-I/usr/local/opt/sqlite/include -I/usr/local/opt/zlib/include"
 
 RUN pyenv install 3.5.2
 RUN pyenv global 3.5.2
 RUN pyenv rehash
-RUN pyenv virtualenv venv352
 
-COPY . /scrapy
-WORKDIR /scrapy
-
+COPY . /home/scrapy/flight
+WORKDIR /home/scrapy/flight
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
-RUN scrapy crawl airports
+
+VOLUME /backup
+
+CMD [ "python", "main.py" ]
+#ENTRYPOINT ["tail", "-f", "/dev/null"]
 
 ## Selenium
 #RUN apt-get install -qy firefox xvfb

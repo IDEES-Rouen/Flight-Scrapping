@@ -15,6 +15,10 @@ BOT_NAME = 'flight_project'
 SPIDER_MODULES = ['flight_project.spiders']
 NEWSPIDER_MODULE = 'flight_project.spiders'
 
+LOG_ENABLED = True
+LOG_LEVEL = 'DEBUG'
+
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'flight_project (+http://www.yourdomain.com)'
 
@@ -84,16 +88,12 @@ ITEM_PIPELINES = {
     'flight_project.pipelines.MongoPipeline': 300,
 }
 
-HTTP_PROXY = 'http://127.0.0.1:8118'
-HTTPS_PROXY = 'http://127.0.0.1:8118'
+#HTTP_PROXY = 'http://127.0.0.1:8118'
+#HTTPS_PROXY = 'http://127.0.0.1:8118'
 
-MONGODB_SERVER = "localhost"
-MONGODB_PORT = 27017
+MONGO_URI = "mongodb://mongodb_service:27017"
 MONGODB_DB = "flight_project"
 MONGODB_COLLECTION = "airports"
-
-MONGODB_USERNAME = "" # Change in prod
-MONGODB_PASSWORD = "" # Change in prod
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html

@@ -1,0 +1,26 @@
+version: '3.4'
+services:
+  scrap_service:
+        build: .
+        container_name: "flight_scrap"
+        depends_on:
+          - mongodb_service
+        networks:
+          - scrappy
+
+  mongodb_service:
+        image: 'mongo:3.4.1'
+        command: "--smallfiles"
+        volumes:
+          - /home/reyman/Volumes/mongo/backup:/backup
+        environment:
+          - LOCAL_USER_ID=`id -u $USER`
+        ports:
+          - '27017:27017'
+        networks:
+          - scrappy
+
+
+networks:
+  scrappy:
+    driver: bridge
