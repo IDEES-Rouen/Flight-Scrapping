@@ -19,8 +19,8 @@ class AirportsSpider(scrapy.Spider):
         super(AirportsSpider, self).__init__()
         self.aDate = aDate
         self.timestamp = self.aDate.timestamp()
-        print("PENDULUM UTC TODAY ", self.aDate.isoformat())
-        print("PENDULUM TO TIMESTAMP ", self.timestamp)
+        print("PENDULUM UTC TODAY", self.aDate.today())
+        print("PENDULUM UTC TIMESTAMP TODAY ", self.timestamp)
     def clean_html(self, html_text):
         soup = BeautifulSoup(html_text, 'html.parser')
         return soup.get_text()

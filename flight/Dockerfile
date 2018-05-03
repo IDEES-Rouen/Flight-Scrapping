@@ -3,64 +3,63 @@
 ############################################################
 
 # https://denibertovic.com/posts/handling-permissions-with-docker-volumes/
-FROM gliderlabs/alpine:edge as baseStage
+FROM python:3.6-alpine3.7 as baseStage
+MAINTAINER rey <sebastien.rey-coyrehourcq@univ-rouen.fr>
 
 RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
-RUN apk add --update && apk add -f gnupg ca-certificates curl dpkg su-exec shadow
+RUN apk upgrade --update-cache --available
+RUN apk add --update && apk add -f gnupg ca-certificates curl dpkg bash su-exec shadow gcc musl-dev libxml2-dev libxslt-dev python-dev libffi-dev mongodb mongodb-tools mongotools-db openssl-dev nmap
+
+ARG GID=1000
+ARG UID=1000
+
+ENV TZ=UTC
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-RUN addgroup scrapy \
-    && adduser -S -G scrapy scrapy
+RUN addgroup -g $GID scrapy && adduser -h /home/scrapy -s /bin/sh -D -G scrapy -u $UID scrapy
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# INIT CRON
+ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.1.5/supercronic-linux-amd64 \
+    SUPERCRONIC=supercronic-linux-amd64 \
+    SUPERCRONIC_SHA1SUM=9aeb41e00cc7b71d30d33c57a2333f2c2581a201
 
-############################################################
-# STAGE 2
-############################################################
+RUN curl -fsSLO "$SUPERCRONIC_URL" \
+ && echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c - \
+ && chmod +x "$SUPERCRONIC" \
+ && mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
+ && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
 
-FROM baseStage
-MAINTAINER rey <sebastien.rey-coyrehourcq@univ-rouen.fr>
 
-ENV TZ=UTC
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+WORKDIR /home/scrapy
 
-### Python Family
-RUN apk add -f bash nmap patch build-base git openssl-dev bzip2-dev readline readline-devel sqlite3 wget gcc git linux-headers ncurses-dev ca-certificates
-RUN apk add -f curl make bzip2 sqlite openssl openssl-dev libreadline-dev libbz2-dev libssl-dev libxml2-dev libxslt-dev libffi-dev libsqlite3-dev iputils-ping nmap mongodb-tools mongodb-clients
+RUN mkdir -p /home/scrapy/backup
 
-RUN mkdir /backup && chown scrapy:scrapy /backup
+COPY crontab /home/scrapy
 
 # Switch user after install
-WORKDIR /home/scrapy
-USER scrapy
+
 
 # SET TIMEZONE https://serverfault.com/questions/683605/docker-container-time-timezone-will-not-reflect-changes
 
-#### PYTHON
-
-RUN git clone git://github.com/yyuu/pyenv.git .pyenv
-
-ENV HOME /home/scrapy
-ENV PYENV_ROOT $HOME/.pyenv
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
-
-### SQLITE 3 bug with python compile, needed but create mkdir bug in opt ...
-### ENV LDFLAGS="-L/usr/local/opt/sqlite/lib -L/usr/local/opt/zlib/lib"
-### ENV CPPFLAGS="-I/usr/local/opt/sqlite/include -I/usr/local/opt/zlib/include"
-
-RUN pyenv install 3.5.2
-RUN pyenv global 3.5.2
-RUN pyenv rehash
-
 COPY . /home/scrapy/flight
 WORKDIR /home/scrapy/flight
+
 RUN pip install --upgrade pip
+RUN pip install --upgrade setuptools
 RUN pip install --no-cache-dir -r requirements.txt
+# --install-option="--prefix=/install" a voir pour plus tard pour gagner de la place
 
-VOLUME /backup
+VOLUME /home/scrapy/backup
 
-CMD [ "python", "main.py" ]
+#ENTRYPOINT ["/sbin/tini"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["supercronic", "crontab"]
+
+#CMD ["crond", "-f", "-l", "0", "-L", "/var/log/cron.log"]
+
 #ENTRYPOINT ["tail", "-f", "/dev/null"]
 
 ## Selenium

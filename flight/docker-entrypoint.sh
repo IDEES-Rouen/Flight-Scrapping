@@ -1,13 +1,8 @@
-#!/usr/bin/env bash
-
+#!/bin/sh
 set -e
 
-# Add local user
-# Either use the LOCAL_USER_ID if passed in at runtime or
-# fallback
-
-echo "Starting with UID : $USER_ID"
-useradd --shell /bin/bash -u $USER_ID -o -c "" -m scrapy
-export HOME=/home/scrapy
-
-exec su-exec scrapy "$@"
+if [ "$(whoami)" == "root" ]; then
+    chown -R scrapy:scrapy /home/scrapy/backup
+    chown --dereference scrapy "/proc/$$/fd/1" "/proc/$$/fd/2" || :
+    exec su-exec scrapy "$@"
+fi

@@ -1,0 +1,40 @@
+
+FROM python:3.6.4-alpine3.7
+MAINTAINER rey <sebastien.rey-coyrehourcq@univ-rouen.fr>
+
+RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
+RUN apk add --update
+
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+### Python Family
+RUN apk add -f busybox-suid bash nmap patch build-base git openssl-dev bzip2-dev readline readline-dev sqlite3 sqlite-dev wget gcc git linux-headers ncurses-dev ca-certificates
+RUN apk add -f tini curl make bzip2 sqlite openssl openssl-dev libbz2-dev libssl-dev libxml2-dev libxslt-dev libffi-dev libsqlite3-dev iputils-ping nmap mongodb-tools mongodb-clients
+
+# INIT CRON
+RUN mkdir /backup
+
+COPY crontab /var/spool/cron/crontabs/root
+RUN touch /var/log/cron.log
+
+WORKDIR /home/root
+
+#### PYTHON
+
+ENV HOME /home/root
+
+COPY . /home/root/flight
+WORKDIR /home/root/flight
+
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+VOLUME /backup
+
+ENTRYPOINT ["/sbin/tini"]
+CMD ["crond", "-f", "-l", "0", "-L", "/var/log/cron.log"]
+
+## Selenium
+#RUN apt-get install -qy firefox xvfb
+#RUN pip install selenium pyvirtualdisplay
