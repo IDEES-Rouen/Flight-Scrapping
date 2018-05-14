@@ -3,8 +3,6 @@ services:
   scrap_service:
         build: .
         container_name: "flight_scrap"
-#        environment:
-#          - LOCAL_USER_ID=`id -u $USER`
         depends_on:
           - mongodb_service
         networks:

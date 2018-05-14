@@ -18,5 +18,5 @@ process.start()
 
 subprocess.run("mongodump --host mongodb_service:27017 --archive=/home/scrapy/backup/{timestamp}.gz --gzip".format(timestamp=pendulum.now()), shell=True, check=True)
 
-subprocess.run("mongo --host mongodb_service:27017 flight_project --eval 'db.collection.drop();'", shell=True, check=True)
+subprocess.run("mongo --host mongodb_service:27017 flight_project --eval 'db.airports.drop();'", shell=True, check=True)
 
