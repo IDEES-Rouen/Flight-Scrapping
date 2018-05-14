@@ -56,14 +56,13 @@ class AirportsSpider(scrapy.Spider):
 
         for a_country in response.xpath('//a[@data-country]'):
             name = a_country.xpath('./@title').extract()[0]
-            if name == "France":
-                country = CountryItem()
-                country['name'] = name
-                country['link'] = a_country.xpath('./@href').extract()[0]
+            country = CountryItem()
+            country['name'] = name
+            country['link'] = a_country.xpath('./@href').extract()[0]
 
-                yield scrapy.Request(country['link'],
-                                     meta={'country': country},
-                                     callback=self.parse_airports)
+            yield scrapy.Request(country['link'],
+                                 meta={'country': country},
+                                 callback=self.parse_airports)
 
     ###################################
     # PARSE EACH AIRPORT
