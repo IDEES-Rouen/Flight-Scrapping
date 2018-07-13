@@ -45,8 +45,10 @@ class AirportsSpider(scrapy.Spider):
         return cf_requests
 
     def build_api_call(self,code,page,timestamp):
-        return 'https://api.flightradar24.com/common/v1/airport.json?code={code}&plugin\[\]=&plugin-setting\[schedule\]\[mode\]=&plugin-setting\[schedule\]\[timestamp\]={timestamp}&page={page}&limit=100&token='.format(
+        query = 'https://api.flightradar24.com/common/v1/airport.json?code={code}&plugin\[\]=&plugin-setting\[schedule\]\[mode\]=&plugin-setting\[schedule\]\[timestamp\]={timestamp}&page={page}&limit=100&token='.format(
             code=code, page=page, timestamp=timestamp)
+        print("Query = ", query)
+        return query
 
     ###################################
     # MAIN PARSE

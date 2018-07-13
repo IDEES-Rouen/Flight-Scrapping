@@ -15,8 +15,8 @@ BOT_NAME = 'flight_project'
 SPIDER_MODULES = ['flight_project.spiders']
 NEWSPIDER_MODULE = 'flight_project.spiders'
 
-#LOG_ENABLED = True
-#LOG_LEVEL = 'DEBUG'
+LOG_ENABLED = True
+LOG_LEVEL = 'INFO'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
