@@ -1,5 +1,4 @@
 
-from flightClass import *
 import psycopg2
 import pendulum
 
@@ -9,7 +8,8 @@ import pendulum
 # - gestion Codeshare (moins urgent)
 # - gestion des captures dans le temps ?
 
-conn = psycopg2.connect("dbname=reyman64_flight host=web564.webfaction.com user=reyman64_flight password=eK0EB67ktpoXr58xKtfv")
+#conn = psycopg2.connect("dbname=reyman64_flight host=web564.webfaction.com user=reyman64_flight password=eK0EB67ktpoXr58xKtfv")
+conn = psycopg2.connect("dbname=postgres host=localhost user=postgres password=docker")
 
 # Delete all
 # with conn:
@@ -19,11 +19,6 @@ conn = psycopg2.connect("dbname=reyman64_flight host=web564.webfaction.com user=
 #         curs.execute("""delete FROM airlines; """)
 #         curs.execute("""delete FROM countries; """)
 
-def getFipsCode(name):
-    with conn:
-        with conn.cursor() as curs:
-             curs.execute("""SELECT c_fipscode FROM countries WHERE c_name ILIKE %s """, ['%' + name + '%'])
-             return curs.fetchone()[0] if curs.rowcount != 0 else ""
 
 airports = []
 countries = []
@@ -36,31 +31,7 @@ airports_filename = "./resources/airports.dat"
 countries_filename = "./resources/countries.dat"
 airlines_filename = "./resources/airlines.dat"
 
-# with open(airports_filename , 'r') as f:
-#     for line in f :
-#         item  = line.replace('"', '').split(",")
-#         airport = Airport(name = item[1],
-#                           city = item[2],
-#                           country = item[3],
-#                           IATA = None if item[4] == "\\N" else item[4],
-#                           ICAO = item[5],
-#                           lat = item[6],
-#                           lon = item[7],
-#                           dst = item[8],
-#                           tz = item[9])
-#         airports.append(airport)
 
-# with open(countries_filename, 'r') as f:
-#     for line in f:
-#         try:
-#             item = line.replace('"', '').split(",")
-#             if (item[2] != "\\N") and (item[1] != "\\N") :
-#                 country = Countries(name= item[0], fipscode= item[1], iso3166code= item[2])
-#                 countries.append(country)
-#             else:
-#                 print ("error with : ",item[0] , " country : " ,  item[2] , " / ", item[1])
-#         except:
-#             print("")
 
 with open(airlines_filename , 'r') as f:
     for line in f :
@@ -76,28 +47,6 @@ with open(airlines_filename , 'r') as f:
 
 ## INSERT INTO
 
-# COUNTRY
-# for country in countries:
-#     if (len(country.fipscode) == 2 and len(country.iso3166code) == 2):
-#         with conn:
-#             with conn.cursor() as curs:
-#                 curs.execute("""INSERT INTO countries (c_name, c_fipscode, c_isocode)
-#                 VALUES (%s, %s, %s)""",
-#                 (country.name, country.fipscode, country.iso3166code))
-#     else:
-#         print(country.name)
-
-# AIRPORTS
-# for airport in airports:
-#     fipscode = getFipsCode(airport.country)
-#     if (len(airport.ICAO) == 4 and fipscode != "" ):
-#         with conn:
-#             with conn.cursor() as curs:
-#                 curs.execute("""INSERT INTO airports (a_iata, a_icao, a_geom, a_capturedate, a_name, a_country)
-#                 VALUES (%s, %s, ST_MakePoint(%s,%s), %s, %s, %s)""",
-#                 (airport.IATA, airport.ICAO, airport.lon, airport.lat, airport.time, airport.name, fipscode ))
-#     else:
-#         print("Country none ! ", airport.country, " / ", airport.IATA," /", airport.ICAO)
 
 # AIRLINES
 print("airline size = ", len(airlines))
