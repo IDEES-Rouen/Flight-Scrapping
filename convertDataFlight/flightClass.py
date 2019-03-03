@@ -24,6 +24,7 @@ class Flights():
         self.dest_airport_icao = dest_airport_icao
         self.scheduled_time = scheduled_time
 
+
 class Countries():
     def __init__(self,name, fipscode, iso3166code):
         self.name = name
