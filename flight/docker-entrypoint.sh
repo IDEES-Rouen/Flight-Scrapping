@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+echo "$(whoami)"
 
 if [ "$(whoami)" == "root" ]; then
     chown -R scrapy:scrapy /home/scrapy/backup

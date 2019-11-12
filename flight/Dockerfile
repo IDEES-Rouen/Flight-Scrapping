@@ -10,8 +10,8 @@ RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
 RUN apk upgrade --update-cache --available
 RUN apk add --update && apk add -f gnupg ca-certificates curl dpkg bash su-exec shadow gcc musl-dev libxml2-dev libxslt-dev python-dev libffi-dev mongodb mongodb-tools mongotools-db openssl-dev nmap
 
-ARG GID=1000
-ARG UID=1000
+ARG GID
+ARG UID
 
 ENV TZ=UTC
 
@@ -47,16 +47,16 @@ COPY crontab /home/scrapy
 COPY . /home/scrapy/flight
 WORKDIR /home/scrapy/flight
 
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
-RUN pip install --no-cache-dir -r requirements.txt
+#RUN pip install --upgrade pip
+#RUN pip install --upgrade setuptools
+#RUN pip install --no-cache-dir -r requirements.txt
 # --install-option="--prefix=/install" a voir pour plus tard pour gagner de la place
 
 VOLUME /home/scrapy/backup
 
 #ENTRYPOINT ["/sbin/tini"]
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["supercronic", "crontab"]
+CMD ["supercronic", "-debug", "/home/scrapy/crontab"]
 
 #CMD ["crond", "-f", "-l", "0", "-L", "/var/log/cron.log"]
 

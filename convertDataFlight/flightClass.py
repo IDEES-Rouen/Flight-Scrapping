@@ -16,14 +16,18 @@ class Airlines2012():
     def __hash__(self):
         return hash(self.ICAO)
 
-class Flights():
-    def __init__(self,codeline, airline_icao, source_airport_icao, scheduled_time, dest_airport_icao):
-        self.codeline = codeline
-        self.airline_icao = airline_icao
-        self.source_airport_icao = source_airport_icao
-        self.dest_airport_icao = dest_airport_icao
-        self.scheduled_time = scheduled_time
 
+class Flights():
+    def __init__(self,codeline, airline_icao, airline_iata, aircraft_type, aircraft_registration, code_airport, code_dest_airport, date_ut,date_ut_arrivals):
+        self.idflight_icao = codeline
+        self.airline_icao = airline_icao
+        self.airline_iata = airline_iata
+        self.aircraft_type = aircraft_type
+        self.aircraft_registration = aircraft_registration
+        self.source_airport_icao = code_airport
+        self.dest_airport_icao = code_dest_airport
+        self.time_dep = date_ut
+        self.time_arrival = date_ut_arrivals
 
 class Countries():
     def __init__(self,name, fipscode, iso3166code):

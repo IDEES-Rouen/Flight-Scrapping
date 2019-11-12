@@ -38,37 +38,74 @@ def getFlights(airport, code_airport ):
 
     flights = []
 
-    for pages in airport['pages']:
+    # EXTRACT ALL AIRPORTS :
+    # - IATA
+    # - ICAO
+    # - FUSEAU HORAIRE
+    # - LAT LON
+    print(airport['name'])
 
-        # Fenetre glissante
-        timestamp_error = False
+    for pages in airport['pages']:
+        departures_error = False
 
         try:
-            t_starting_capture = pendulum.from_timestamp(pages['departuresPFlight']['timestamp'])
+            departures = pages['departuresPFlight']
+            #t_starting_capture = pendulum.from_timestamp(pages['departuresPFlight']['timestamp'])
         except:
-            print("ERROR OF TIMESTAMP")
-            timestamp_error = True
+            print("NO DEPARTURES")
+            departures_error = True
 
-        if timestamp_error != True:
+        if departures_error != True:
 
-            t_twentyhours_ending_capture = t_starting_capture.add(hours=24)
+            #t_twentyhours_ending_capture = t_starting_capture.add(hours=24)
 
-            # print("start_capture = ", t_starting_capture.format('YYYY-MM-DD HH:mm:ss'))
-            # print("end_capture = ", t_twentyhours_ending_capture.format('YYYY-MM-DD HH:mm:ss'))
+            #print("start_capture = ", t_starting_capture.format('YYYY-MM-DD HH:mm:ss'))
+            #print("end_capture = ", t_twentyhours_ending_capture.format('YYYY-MM-DD HH:mm:ss'))
 
+            # TODO : export aussi des [arrivals][data]
             data = pages['departuresPFlight']['data']
             for d in data:
                 try:
                     airline_icao = d['flight']['airline']['code']['icao']
-                    code_line = d['flight']['identification']['number']['default']
-                    code_dest_airport = d['flight']['airport']['destination']['code']['icao']
-                    timestamp_raw = d['flight']['time']['scheduled']['departure']
-                    date_ut = pendulum.from_timestamp(timestamp_raw)
-                    if date_ut < t_twentyhours_ending_capture:
-                        #print("Add flight > ", code_line, " / ", airline_icao, " / ", code_airport, " / ", date_ut," / ", code_dest_airport)
-                        flights.append(Flights(code_line, airline_icao, code_airport, date_ut, code_dest_airport))
                 except:
-                    print("airline ICA O is None for " , d['flight'])
+                    airline_icao = ""
+
+                try:
+                    airline_iata = d['flight']['airline']['code']['iata']
+                except:
+                    airline_iata = ""
+
+                try:
+                    code_line = d['flight']['identification']['number']['default']
+                except:
+                    code_line = ""
+                try:
+                    aircraft_type = d['flight']['aircraft']['model']['code']
+                except:
+                    aircraft_type = ""
+                try:
+                    aircraft_registration = d['flight']['aircraft']['registration']
+                except:
+                    aircraft_registration = ""
+                try:
+                    code_dest_airport = d['flight']['airport']['destination']['code']['icao']
+                except:
+                    code_dest_airport = ""
+                try :
+                    timestamp_raw_departures = d['flight']['time']['scheduled']['departure']
+                    date_ut = pendulum.from_timestamp(timestamp_raw_departures)
+
+                except:
+                    timestamp_raw_departures = ""
+                    date_ut = ""
+                try:
+                    timestamp_raw_arrivals = d['flight']['time']['scheduled']['arrival']
+                    date_ut_arrivals = pendulum.from_timestamp(timestamp_raw_arrivals)
+                except:
+                    timestamp_raw_arrivals = ""
+                    date_ut_arrivals = ""
+
+                flights.append(Flights(code_line, airline_icao, airline_iata, aircraft_type, aircraft_registration, code_airport, code_dest_airport, date_ut, date_ut_arrivals))
 
         # for f in flights:
         #     print(f.ICAO, "/", f.scheduled_time.format('YYYY-MM-DD HH:mm:ss'))
@@ -81,11 +118,11 @@ def getAirports(CAirport, selectedAirports = None):
         reg = list(map(lambda x : buildregex(x), selectedAirports))
         #curs = CAirport.find({"airport.code_total" : { "$in" : reg}})
         curs = CAirport.find({"$and" : [
-            {"airport.code_total" : { "$in" : reg}},
-            {"airport.pages.1": { "$exists": True}}]})
+           {"airport.code_total" : { "$in" : reg}},
+           {"airport.pages.1": { "$exists": True}}]})
 
     else:
-        curs = CAirport.find({"airport.pages.1": { "$exists": True}})
+        curs = CAirport.find({"airport.pages.0": { "$exists": True}})
 
     print(curs.count())
     # db.getCollection('airports').find({"airport.pages.1": { $exists: true}})
@@ -101,7 +138,16 @@ def getAirports(CAirport, selectedAirports = None):
 def toCSV(flights, airport_icao):
 
     csvPath = Path.joinpath(Path("csv" ,Path("{a}.csv".format(a=airport_icao))))
-    fieldnames = ["airline_icao", "dest_airport_icao", "source_airport_icao", "scheduled_time", "codeline"]
+
+    fieldnames = ["idflight_icao",
+                  "airline_icao",
+                  "airline_iata",
+                  "aircraft_type",
+                  "aircraft_registration",
+                  "source_airport_icao",
+                  "dest_airport_icao",
+                  "time_dep",
+                  "time_arrival"]
 
     if csvPath.exists():
         with open(csvPath,'a', newline='') as csvFile:

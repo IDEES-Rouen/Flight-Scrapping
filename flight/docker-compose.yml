@@ -3,12 +3,13 @@ services:
   scrap_service:
         build: .
         container_name: "flight_scrap"
+        user: "${UID}:${GID}"
         depends_on:
           - mongodb_service
         networks:
           - scrappy
         volumes:
-          - /home/reyman/Volumes/mongo/backup:/home/scrapy/backup
+          - scrapy_volume:/home/scrapy/backup
 
   mongodb_service:
         image: 'mongo:3.4.1'
@@ -18,6 +19,8 @@ services:
         networks:
           - scrappy
 
+volumes:
+  scrapy_volume:
 
 networks:
   scrappy:

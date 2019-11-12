@@ -10,7 +10,7 @@ from fake_useragent import UserAgent
 import pendulum
 
 class AirportsSpider(scrapy.Spider):
-    name = "airports"
+    name = "AirportsSpider"
     start_urls = ['https://www.flightradar24.com/data/airports']
     allowed_domains = ['flightradar24.com']
     ua = UserAgent()
@@ -28,7 +28,7 @@ class AirportsSpider(scrapy.Spider):
     rules = [
     # Extract links matching 'item.php' and parse them with the spider's method parse_item
         Rule(LxmlLinkExtractor(allow=('data/airports/',)), callback='parse')
-    ]
+    ]   
 
     def start_requests(self):
         cf_requests = []
