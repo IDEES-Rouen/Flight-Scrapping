@@ -1,14 +1,12 @@
-############################################################
-# STAGE 1
-############################################################
-
-# https://denibertovic.com/posts/handling-permissions-with-docker-volumes/
-FROM python:3.6-alpine3.7 as baseStage
+FROM python:3.7-slim-buster as baseStage
 MAINTAINER rey <sebastien.rey-coyrehourcq@univ-rouen.fr>
 
-RUN echo http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
-RUN apk upgrade --update-cache --available
-RUN apk add --update && apk add -f gnupg ca-certificates curl dpkg bash su-exec shadow gcc musl-dev libxml2-dev libxslt-dev python-dev libffi-dev mongodb mongodb-tools mongotools-db openssl-dev nmap
+RUN apt-get update && apt-get install -y wget gnupg2 ca-certificates curl bash sudo
+
+RUN echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+RUN wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+
+RUN apt-get update && apt-get install -y gosu gcc libxslt1-dev python-dev mongodb-org libssl-dev nmap
 
 ARG GID
 ARG UID
@@ -19,7 +17,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-RUN addgroup -g $GID scrapy && adduser -h /home/scrapy -s /bin/sh -D -G scrapy -u $UID scrapy
+RUN groupadd -g $GID scrapy && useradd -m -s /bin/sh -g scrapy -u $UID scrapy
 
 # INIT CRON
 ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.1.5/supercronic-linux-amd64 \
@@ -39,29 +37,17 @@ RUN mkdir -p /home/scrapy/backup
 
 COPY crontab /home/scrapy
 
-# Switch user after install
-
-
+# https://denibertovic.com/posts/handling-permissions-with-docker-volumes/
 # SET TIMEZONE https://serverfault.com/questions/683605/docker-container-time-timezone-will-not-reflect-changes
 
 COPY . /home/scrapy/flight
 WORKDIR /home/scrapy/flight
 
-#RUN pip install --upgrade pip
-#RUN pip install --upgrade setuptools
-#RUN pip install --no-cache-dir -r requirements.txt
-# --install-option="--prefix=/install" a voir pour plus tard pour gagner de la place
+RUN pip install --upgrade pip
+RUN pip install --upgrade setuptools
+RUN pip install --no-cache-dir -r requirements.txt
 
 VOLUME /home/scrapy/backup
 
-#ENTRYPOINT ["/sbin/tini"]
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["supercronic", "-debug", "/home/scrapy/crontab"]
-
-#CMD ["crond", "-f", "-l", "0", "-L", "/var/log/cron.log"]
-
-#ENTRYPOINT ["tail", "-f", "/dev/null"]
-
-## Selenium
-#RUN apt-get install -qy firefox xvfb
-#RUN pip install selenium pyvirtualdisplay

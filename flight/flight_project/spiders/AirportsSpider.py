@@ -12,6 +12,14 @@ import pendulum
 class AirportsSpider(scrapy.Spider):
     name = "AirportsSpider"
     start_urls = ['https://www.flightradar24.com/data/airports']
+
+    custom_settings = {
+        'CONCURRENT_REQUESTS': '1',
+        'DOWNLOAD_DELAY': '2',
+        'COOKIES_ENABLED': True,
+        'REDIRECT_ENABLED': True
+    }
+
     allowed_domains = ['flightradar24.com']
     ua = UserAgent()
 
@@ -28,7 +36,7 @@ class AirportsSpider(scrapy.Spider):
     rules = [
     # Extract links matching 'item.php' and parse them with the spider's method parse_item
         Rule(LxmlLinkExtractor(allow=('data/airports/',)), callback='parse')
-    ]   
+    ]
 
     def start_requests(self):
         cf_requests = []

@@ -3,13 +3,12 @@ services:
   scrap_service:
         build: .
         container_name: "flight_scrap"
-        user: "${UID}:${GID}"
         depends_on:
           - mongodb_service
         networks:
-          - scrappy
+          - flight_scrappy
         volumes:
-          - scrapy_volume:/home/scrapy/backup
+          - flight_scrapy_volume:/home/scrapy/backup
 
   mongodb_service:
         image: 'mongo:3.4.1'
@@ -17,11 +16,11 @@ services:
         ports:
           - '27017:27017'
         networks:
-          - scrappy
+          - flight_scrappy
 
 volumes:
-  scrapy_volume:
+  flight_scrapy_volume:
 
 networks:
-  scrappy:
+  flight_scrappy:
     driver: bridge

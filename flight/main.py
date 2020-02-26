@@ -1,8 +1,9 @@
 from twisted.internet import reactor, defer
 from scrapy.crawler import CrawlerRunner
-from scrapy.utils.log import configure_logging
+import logging
 
 from flight_project.spiders import AirportsSpider
+from scrapy.utils.log import configure_logging
 
 #from scrapy import cmdline
 import subprocess
