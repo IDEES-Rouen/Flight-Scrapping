@@ -71,6 +71,11 @@ def getFlights(airport, code_airport ):
                     airline_icao = ""
 
                 try:
+                    airline_status = d['flight']['status']['text']
+                except:
+                    airline_status = ""
+
+                try:
                     airline_iata = d['flight']['airline']['code']['iata']
                 except:
                     airline_iata = ""
@@ -105,7 +110,7 @@ def getFlights(airport, code_airport ):
                     timestamp_raw_arrivals = ""
                     date_ut_arrivals = ""
 
-                flights.append(Flights(code_line, airline_icao, airline_iata, aircraft_type, aircraft_registration, code_airport, code_dest_airport, date_ut, date_ut_arrivals))
+                flights.append(Flights(code_line, airline_icao, airline_status, airline_iata, aircraft_type, aircraft_registration, code_airport, code_dest_airport, date_ut, date_ut_arrivals))
 
         # for f in flights:
         #     print(f.ICAO, "/", f.scheduled_time.format('YYYY-MM-DD HH:mm:ss'))
@@ -141,6 +146,7 @@ def toCSV(flights, airport_icao):
 
     fieldnames = ["idflight_icao",
                   "airline_icao",
+                  "airline_status",
                   "airline_iata",
                   "aircraft_type",
                   "aircraft_registration",
