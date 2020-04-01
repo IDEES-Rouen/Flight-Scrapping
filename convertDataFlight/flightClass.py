@@ -18,9 +18,10 @@ class Airlines2012():
 
 
 class Flights():
-    def __init__(self,codeline, airline_icao, airline_iata, aircraft_type, aircraft_registration, code_airport, code_dest_airport, date_ut,date_ut_arrivals):
+    def __init__(self,codeline, airline_status, airline_icao, airline_iata, aircraft_type, aircraft_registration, code_airport, code_dest_airport, date_ut,date_ut_arrivals):
         self.idflight_icao = codeline
         self.airline_icao = airline_icao
+        self.airline_status = airline_status
         self.airline_iata = airline_iata
         self.aircraft_type = aircraft_type
         self.aircraft_registration = aircraft_registration
